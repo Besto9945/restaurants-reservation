@@ -10,10 +10,10 @@ class Reservation(BaseModel):
 client = MongoClient('mongodb://localhost', 27017)
 
 # TODO fill in database name
-db = client["<put your database name>"]
+db = client["restaurants-reservation"]
 
 # TODO fill in collection name
-collection = db["<put your collection name>"]
+collection = db["reservation"]
 
 app = FastAPI()
 
@@ -21,11 +21,24 @@ app = FastAPI()
 # TODO complete all endpoint.
 @app.get("/reservation/by-name/{name}")
 def get_reservation_by_name(name:str):
-    pass
+    query = collection.find({"name": name})
+    info = {}
+    for i in query:
+        info["table "+ str(i["table_number"])] = "time: " + str(i["time"])
+    if len(info) == 0:
+        return {"result": "No reservation by this name."}
+    return {"reservation": info}
 
-@app.get("reservation/by-table/{table}")
+
+@app.get("/reservation/by-table/{table}")
 def get_reservation_by_table(table: int):
-    pass
+    query =  collection.find({"table_number": table})
+    info = {}
+    for i in query:
+        info[i["name"]] = "time: " + str(i["time"])
+    if len(info) == 0:
+        return {"result": "No one reserve this table."}
+    return {"reservation": info}
 
 @app.post("/reservation")
 def reserve(reservation : Reservation):
