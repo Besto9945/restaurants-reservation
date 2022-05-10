@@ -38,13 +38,19 @@ def get_reservation_by_name(name:str):
 
 @app.get("/reservation/by-table/{table}")
 def get_reservation_by_table(table: int):
-    query =  collection.find({"table_number": table})
-    info = {}
+    query =  collection.find({"table_number": table}, {"_id":0})
+    data = {}
+    count = 1
     for i in query:
-        info[i["name"]] = "time: " + str(i["time"])
-    if len(info) == 0:
-        return {"result": "No one reserve this table."}
-    return {"reservation": info}
+        data[count] = {}
+        data[count]["name"] = i["name"]
+        data[count]["time"] = i["time"]
+        data[count]["table_nubmer"] = i["table_number"]
+        count += 1
+    if len(data) == 0:
+        raise HTTPException(404, "No one reserve this table.")
+    # print(json.dumps(data, indent=4))
+    return {"result": json.dumps(data)}
 
 @app.post("/reservation")
 def reserve(reservation : Reservation):
