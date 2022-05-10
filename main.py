@@ -47,15 +47,17 @@ def get_reservation_by_table(table: int):
     data = {}
     count = 1
     for i in query:
-        data[count] = {}
-        data[count]["name"] = i["name"]
-        data[count]["time"] = i["time"]
-        data[count]["table_nubmer"] = i["table_number"]
+        obj = Reservation()
+        obj.name = i["name"]
+        obj.time = i["time"]
+        obj.table_number = i["table_number"]
+        data[count] = jsonable_encoder(obj)
         count += 1
     if len(data) == 0:
         raise HTTPException(404, "No one reserve this table.")
-    # print(json.dumps(data, indent=4))
-    return {"result": json.dumps(data)}
+    else:
+        return {"result": data}
+
 
 @app.post("/reservation/")
 def reserve(reservation : Reservation):
