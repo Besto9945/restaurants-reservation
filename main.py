@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
 from pydantic import BaseModel
+import json
 
 class Reservation(BaseModel):
     name : str
@@ -21,13 +22,18 @@ app = FastAPI()
 # TODO complete all endpoint.
 @app.get("/reservation/by-name/{name}")
 def get_reservation_by_name(name:str):
-    query = collection.find({"name": name})
-    info = {}
+    query = collection.find({"name": name}, {"_id":0})
+    data = {}
+    count = 1
     for i in query:
-        info["table "+ str(i["table_number"])] = "time: " + str(i["time"])
-    if len(info) == 0:
-        return {"result": "No reservation by this name."}
-    return {"reservation": info}
+        data[count] = {}
+        data[count]["name"] = i["name"]
+        data[count]["time"] = i["time"]
+        data[count]["table_number"] = i["table_number"]
+        count += 1
+    if len(data) == 0:
+        raise HTTPException(404, "Can't find anyone who reserved by this name.")
+    return {"result": json.dumps(data)}
 
 
 @app.get("/reservation/by-table/{table}")
