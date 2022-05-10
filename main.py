@@ -39,8 +39,6 @@ def get_reservation_by_name(name:str):
     else:
         return {"result": data}
 
-
-
 @app.get("/reservation/by-table/{table}")
 def get_reservation_by_table(table: int):
     query =  collection.find({"table_number": table}, {"_id":0})
@@ -58,7 +56,6 @@ def get_reservation_by_table(table: int):
     else:
         return {"result": data}
 
-
 @app.post("/reservation/")
 def reserve(reservation : Reservation):
     query = collection.find({"table_number": reservation.table_number})
@@ -70,7 +67,14 @@ def reserve(reservation : Reservation):
 
 @app.put("/reservation/update/")
 def update_reservation(reservation: Reservation):
-    pass
+    query = collection.find({"table_number": reservation.table_number})
+    for i in query:
+        if i["time"] <= reservation.time < i["time"]+1:
+            return {"result": "The new reservation is not allowed."}
+    find_by = {"name": reservation.name, "table_number": reservation.table_number}
+    new_value = {"$set": {"time": reservation.time}}
+    collection.update_one(find_by, new_value)
+    return {"result": "The new reservation is complete!"}
 
 @app.delete("/reservation/delete/{name}/{table_number}/")
 def cancel_reservation(name: str, table_number : int):
