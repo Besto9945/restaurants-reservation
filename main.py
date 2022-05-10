@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 from pymongo import MongoClient
@@ -5,9 +6,9 @@ from pydantic import BaseModel
 import json
 
 class Reservation(BaseModel):
-    name : str
-    time: int
-    table_number: int
+    name : Optional[str] = None
+    time: Optional[int] = None
+    table_number: Optional[int] = None
     
 client = MongoClient('mongodb://localhost', 27017)
 
@@ -27,14 +28,17 @@ def get_reservation_by_name(name:str):
     data = {}
     count = 1
     for i in query:
-        data[count] = {}
-        data[count]["name"] = i["name"]
-        data[count]["time"] = i["time"]
-        data[count]["table_number"] = i["table_number"]
+        obj = Reservation()
+        obj.name = i["name"]
+        obj.time = i["time"]
+        obj.table_number = i["table_number"]
+        data[count] = jsonable_encoder(obj)
         count += 1
     if len(data) == 0:
         raise HTTPException(404, "Can't find anyone who reserved by this name.")
-    return {"result": json.dumps(data)}
+    else:
+        return {"result": data}
+
 
 
 @app.get("/reservation/by-table/{table}")
