@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.encoders import jsonable_encoder
 from pymongo import MongoClient
 from pydantic import BaseModel
 import json
@@ -52,15 +53,20 @@ def get_reservation_by_table(table: int):
     # print(json.dumps(data, indent=4))
     return {"result": json.dumps(data)}
 
-@app.post("/reservation")
+@app.post("/reservation/")
 def reserve(reservation : Reservation):
-    pass
+    query = collection.find({"table_number": reservation.table_number})
+    for i in query:
+        if i["time"] <= reservation.time < i["time"]+1:
+            return {"result": "Already reserved."}
+    collection.insert_one(jsonable_encoder(reservation))
+    return {"result": "Reservation complete!"}
 
 @app.put("/reservation/update/")
 def update_reservation(reservation: Reservation):
     pass
 
-@app.delete("/reservation/delete/{name}/{table_number}")
+@app.delete("/reservation/delete/{name}/{table_number}/")
 def cancel_reservation(name: str, table_number : int):
     pass
 
